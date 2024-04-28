@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  rabbitmq:
+    container_name: rabbitmq
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - app-network
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - app-network
+
+  mongodb:
+    container_name: mongodb
+    image: mongo
+    ports:
+      - "27017:27017"
+    networks:
+      - app-network
+
+  web:
+    container_name: web
+    build: .
+    ports:
+      - "8000:8000"
+    depends_on:
+      - rabbitmq
+      - mongodb
+    networks:
+      - app-network
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+  worker:
+    container_name: worker
+    build: .
+    depends_on:
+      - rabbitmq
+      - mongodb
+    networks:
+      - app-network
+    command: celery -A tasks worker --loglevel=info -Q mongo_queue
+    
+  beat:
+    container_name: beat
+    build: .
+    command: celery -A tasks beat --loglevel=info
+    depends_on:
+      - rabbitmq
+      - redis
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

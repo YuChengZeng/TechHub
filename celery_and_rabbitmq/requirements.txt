@@ -1,0 +1,6 @@
+celery
+fastapi
+uvicorn
+pymongo
+requests
+redis

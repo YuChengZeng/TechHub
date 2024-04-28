@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>FastAPI with MongoDB</title>
+</head>
+<body>
+    <h2>Query Item by ID</h2>
+    <form id="queryForm" action="/items/" method="get">
+        <input type="number" name="item_id" required>
+        <button type="submit">Query Item</button>
+    </form>
+
+    <h2>Create New Item</h2>
+    <form id="createForm" action="/items/" method="post">
+        <input type="number" name="id" placeholder="ID" required>
+        <input type="text" name="name" placeholder="Name" required>
+        <button type="submit">Create Item</button>
+    </form>
+
+    <script>
+        document.querySelectorAll('form').forEach(form => {
+            form.addEventListener('submit', function(event) {
+                event.preventDefault();
+                const formData = new FormData(form);
+                const formProps = Object.fromEntries(formData);
+
+                if (form.method.toLowerCase() === 'post') {
+                    fetch(form.action, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(formProps),
+                    })
+                    .then(response => response.json())
+                    .then(data => alert(JSON.stringify(data)))
+                    .catch(error => console.error('Error:', error));
+                } else {
+                    // Modified to append the query parameter correctly
+                    window.location.href = `${form.action}?item_id=${formData.get('item_id')}`;
+                }
+            });
+        });
+    </script>
+</body>
+</html>
